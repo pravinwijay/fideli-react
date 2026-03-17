@@ -1,19 +1,36 @@
 import { create } from 'zustand';
 import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
 import { MMKV } from 'react-native-mmkv';
+import { Platform } from 'react-native';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 // @ts-ignore
-const storage = new MMKV({ id: 'fideli-storage' });
+const storage = Platform.OS !== 'web' ? new MMKV({ id: 'fideli-storage' }) : null;
 
 const zustandStorage: StateStorage = {
-  setItem: (name, value) => storage.set(name, value),
-  getItem: (name) => {
-    const value = storage.getString(name);
-    return value ?? null;
+  setItem: (name, value) => {
+    if (Platform.OS === 'web') {
+      try { localStorage.setItem(name, value); } catch (e) {}
+    } else {
+      storage?.set(name, value);
+    }
   },
-  removeItem: (name) => storage.delete(name),
+  getItem: (name) => {
+    if (Platform.OS === 'web') {
+      try { return localStorage.getItem(name) ?? null; } catch (e) { return null; }
+    } else {
+      const value = storage?.getString(name);
+      return value ?? null;
+    }
+  },
+  removeItem: (name) => {
+    if (Platform.OS === 'web') {
+      try { localStorage.removeItem(name); } catch (e) {}
+    } else {
+      storage?.delete(name);
+    }
+  },
 };
 
 export type LoyaltyCard = {
