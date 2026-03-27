@@ -5,10 +5,8 @@ import CardItem from '../../components/CardItem';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-  const { cards, removeCard } = useCardStore((state) => ({
-    cards: state.cards,
-    removeCard: state.removeCard
-  }));
+  const cards = useCardStore((state) => state.cards);
+  const removeCard = useCardStore((state) => state.removeCard);
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
 
