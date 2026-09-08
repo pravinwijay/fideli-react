@@ -4,6 +4,7 @@ import {
   Text, 
   TextInput, 
   TouchableOpacity, 
+  Pressable,
   KeyboardAvoidingView, 
   ScrollView, 
   Platform, 
@@ -31,6 +32,8 @@ export default function AddCardScreen() {
 
   const isFormValid = brandName.trim().length > 0 && barcodeValue.trim().length > 0;
 
+  const selectedColor = COLOR_PALETTE.find((c) => c.hex.toLowerCase() === brandColor.toLowerCase()) || COLOR_PALETTE[0];
+
   const handleSave = () => {
     if (!isFormValid) return;
 
@@ -43,7 +46,7 @@ export default function AddCardScreen() {
       code: '',
       notes: notes.trim(),
     });
-    router.push('/');
+    router.replace('/');
   };
 
   const handleScan = (_type: string, data: string) => {
@@ -151,9 +154,16 @@ export default function AddCardScreen() {
             </Text>
           </View>
 
-          {/* Grille principale : Formulaire + Aperçu */}
+          {/* Grille principale : Formulaire + Aperçu (Aperçu au-dessus sur mobile pour un feedback direct) */}
           <View className={isLargeScreen ? 'flex-row items-start gap-8' : 'flex-col gap-6'}>
             
+            {/* Colonne Aperçu en Direct (affichée en premier sur mobile) */}
+            <View className={isLargeScreen ? 'hidden' : 'w-full'}>
+              <View className="bg-white p-5 rounded-3xl shadow-sm border border-neutral-200/80">
+                {renderCardPreview()}
+              </View>
+            </View>
+
             {/* Colonne Formulaire */}
             <View className={isLargeScreen ? 'flex-1' : 'w-full'}>
               <View className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80">
@@ -174,26 +184,41 @@ export default function AddCardScreen() {
 
                 {/* Sélection de la couleur */}
                 <View className="mb-5">
-                  <Text className="text-sm font-semibold text-neutral-700 mb-2">
-                    Couleur de la carte
-                  </Text>
-                  <View className="flex-row flex-wrap gap-2.5">
+                  <View className="flex-row items-center justify-between mb-2.5">
+                    <Text className="text-sm font-semibold text-neutral-700">
+                      Couleur de la carte
+                    </Text>
+                    <View className="flex-row items-center gap-1.5">
+                      <View 
+                        style={{ backgroundColor: brandColor }} 
+                        className="w-3.5 h-3.5 rounded-full border border-neutral-300" 
+                      />
+                      <Text className="text-xs font-bold text-neutral-600">
+                        {selectedColor.name}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="flex-row flex-wrap gap-2.5 items-center">
                     {COLOR_PALETTE.map((c) => {
                       const isSelected = brandColor.toLowerCase() === c.hex.toLowerCase();
                       return (
-                        <TouchableOpacity
+                        <Pressable
                           key={c.hex}
                           onPress={() => setBrandColor(c.hex)}
-                          style={[
-                            { backgroundColor: c.hex },
-                            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined
-                          ]}
-                          className={`w-10 h-10 rounded-full justify-center items-center shadow-sm border-2 transition-transform ${
-                            isSelected ? 'border-neutral-900 scale-110' : 'border-white/50'
+                          hitSlop={6}
+                          style={Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined}
+                          className={`w-11 h-11 rounded-full justify-center items-center border-2 transition-transform ${
+                            isSelected ? 'border-blue-600 bg-blue-50/50 scale-105' : 'border-transparent'
                           }`}
                         >
-                          {isSelected && <Check size={18} color="#ffffff" strokeWidth={3} />}
-                        </TouchableOpacity>
+                          <View
+                            style={{ backgroundColor: c.hex }}
+                            className="w-8 h-8 rounded-full justify-center items-center shadow-sm"
+                          >
+                            {isSelected && <Check size={16} color="#ffffff" strokeWidth={3} />}
+                          </View>
+                        </Pressable>
                       );
                     })}
                   </View>
@@ -263,12 +288,14 @@ export default function AddCardScreen() {
               </View>
             </View>
 
-            {/* Colonne Aperçu en Direct */}
-            <View className={isLargeScreen ? 'w-[380px] lg:w-[420px]' : 'w-full'}>
-              <View className="bg-white p-6 rounded-3xl shadow-sm border border-neutral-200/80">
-                {renderCardPreview()}
+            {/* Colonne Aperçu en Direct (Desktop uniquement, à droite) */}
+            {isLargeScreen && (
+              <View className="w-[380px] lg:w-[420px]">
+                <View className="bg-white p-6 rounded-3xl shadow-sm border border-neutral-200/80 sticky top-8">
+                  {renderCardPreview()}
+                </View>
               </View>
-            </View>
+            )}
 
           </View>
         </View>
