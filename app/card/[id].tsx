@@ -185,18 +185,20 @@ export default function CardDetailScreen() {
         <View className="px-4 sm:px-8 py-6">
           <View className="flex-col sm:flex-row gap-3.5">
             
-            {/* Code Annexe */}
-            <View className="flex-1 bg-neutral-50 rounded-2xl p-4 border border-neutral-100">
-              <View className="flex-row items-center gap-1.5 mb-1.5">
-                <Hash size={14} color="#9ca3af" />
-                <Text className="text-xs uppercase text-neutral-400 font-bold tracking-wider">
-                  Code Annexe
+            {/* Numéro client (si renseigné) */}
+            {card.code ? (
+              <View className="flex-1 bg-neutral-50 rounded-2xl p-4 border border-neutral-100">
+                <View className="flex-row items-center gap-1.5 mb-1.5">
+                  <Hash size={14} color="#9ca3af" />
+                  <Text className="text-xs uppercase text-neutral-400 font-bold tracking-wider">
+                    Numéro client
+                  </Text>
+                </View>
+                <Text className="text-base sm:text-lg font-bold text-neutral-800">
+                  {card.code}
                 </Text>
               </View>
-              <Text className="text-base sm:text-lg font-bold text-neutral-800">
-                {card.code || 'Aucun'}
-              </Text>
-            </View>
+            ) : null}
 
             {/* Date d'ajout */}
             <View className="flex-1 bg-neutral-50 rounded-2xl p-4 border border-neutral-100">

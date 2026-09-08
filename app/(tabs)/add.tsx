@@ -21,7 +21,6 @@ export default function AddCardScreen() {
   const [brandName, setBrandName] = useState('');
   const [barcodeValue, setBarcodeValue] = useState('');
   const [brandColor, setBrandColor] = useState(DEFAULT_CARD_COLOR);
-  const [code, setCode] = useState('');
   const [notes, setNotes] = useState('');
   const [isScanning, setIsScanning] = useState(false);
 
@@ -41,7 +40,7 @@ export default function AddCardScreen() {
       barcodeType: 'CODE128',
       barcodeValue: barcodeValue.trim(),
       brandPrimaryColorHex: brandColor,
-      code: code.trim(),
+      code: '',
       notes: notes.trim(),
     });
     router.push('/');
@@ -222,20 +221,6 @@ export default function AddCardScreen() {
                       <Camera size={22} color="#4b5563" />
                     </TouchableOpacity>
                   </View>
-                </View>
-
-                {/* Numéro client */}
-                <View className="mb-5">
-                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
-                    Numéro client
-                  </Text>
-                  <TextInput
-                    placeholder="Ex: CUST-88912"
-                    placeholderTextColor="#9ca3af"
-                    value={code}
-                    onChangeText={setCode}
-                    className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base focus:border-blue-500"
-                  />
                 </View>
 
                 {/* Notes */}
