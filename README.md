@@ -6,12 +6,12 @@
 
 ## Fonctionnalités
 
-- 📷 **Scanner de code-barres** : Numérisation instantanée via la caméra (EAN-13, CODE-128, QR Code, etc.).
-- 💳 **Aperçu en temps réel** : Visualisation instantanée de la carte lors de la saisie (couleur, code, enseigne).
-- ⚡ **Affichage optimisé en caisse** : Rendu vectoriel du code-barres et ajustement automatique de la luminosité maximale de l'écran.
-- 🔍 **Recherche rapide** : Filtrage en temps réel par nom d'enseigne, code annexe ou notes.
-- ✏️ **Gestion simple** : Suppression et réorganisation faciles avec animations haptiques / visuelles.
-- 💾 **100% hors-ligne & sécurisé** : Données conservées localement sur l'appareil (AsyncStorage).
+- **Scanner de code-barres** : Numérisation instantanée via la caméra (EAN-13, CODE-128, QR Code, etc.).
+- **Aperçu en temps réel** : Visualisation instantanée de la carte lors de la saisie (couleur, code, enseigne).
+- **Affichage optimisé en caisse** : Rendu vectoriel du code-barres et ajustement automatique de la luminosité maximale de l'écran.
+- **Recherche rapide** : Filtrage en temps réel par nom d'enseigne, code annexe ou notes.
+- **Gestion simple** : Suppression et réorganisation faciles avec animations fluides.
+- **100% hors-ligne et sécurisé** : Données conservées localement sur l'appareil (AsyncStorage).
 
 ---
 
