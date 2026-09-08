@@ -126,9 +126,8 @@ export default function CardItem({ card, isEditing, onPress, onLongPress, onDele
           ) : null}
         </View>
 
-        {/* Vagues sans contact et puce simulée */}
-        <View className="flex-row items-center space-x-1.5 opacity-80">
-          <View className="w-7 h-5 rounded bg-amber-300/80 border border-amber-400/50 mr-1.5" />
+        {/* Vagues sans contact (puce retirée) */}
+        <View className="flex-row items-center opacity-85">
           <Wifi size={18} color="white" className="rotate-90 opacity-90" />
         </View>
       </View>
