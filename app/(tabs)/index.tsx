@@ -23,12 +23,12 @@ export default function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  // Nombre dynamique de colonnes en fonction de la largeur de l'écran
+  // Nombre de colonnes adapté aux appareils mobiles, tablettes et ordinateurs
   const numColumns = useMemo(() => {
-    if (width < 520) return 2;
-    if (width < 820) return 3;
-    if (width < 1180) return 4;
-    return 5;
+    if (width < 640) return 1;
+    if (width < 1024) return 2;
+    if (width < 1440) return 3;
+    return 4;
   }, [width]);
 
   // Filtrage des cartes selon la recherche (nom d'enseigne, notes, code, code-barres)
@@ -182,7 +182,10 @@ export default function HomeScreen() {
               keyExtractor={(item) => item.id}
               numColumns={numColumns}
               renderItem={({ item }) => (
-                <View style={{ flex: 1 / numColumns }}>
+                <View 
+                  style={{ flex: 1 / numColumns }}
+                  className={numColumns === 1 ? "w-full max-w-lg mx-auto" : "w-full"}
+                >
                   <CardItem
                     card={item}
                     isEditing={isEditing}
@@ -196,7 +199,7 @@ export default function HomeScreen() {
                 </View>
               )}
               contentContainerStyle={{ 
-                paddingBottom: Platform.OS === 'web' ? 120 : 100,
+                paddingBottom: Platform.OS === 'web' ? 110 : 90,
                 paddingTop: 4 
               }}
               showsVerticalScrollIndicator={false}

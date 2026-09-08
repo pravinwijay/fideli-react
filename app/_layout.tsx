@@ -4,6 +4,7 @@ import { useColorScheme } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
 export { ErrorBoundary } from 'expo-router';
@@ -16,7 +17,11 @@ export default function RootLayout() {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
-  return <RootLayoutNav />;
+  return (
+    <SafeAreaProvider>
+      <RootLayoutNav />
+    </SafeAreaProvider>
+  );
 }
 
 function RootLayoutNav() {
