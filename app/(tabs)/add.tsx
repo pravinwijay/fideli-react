@@ -1,171 +1,341 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Image, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { useCardStore } from '../../store/useCardStore';
+import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  KeyboardAvoidingView, 
+  ScrollView, 
+  Platform, 
+  Modal, 
+  useWindowDimensions 
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { Camera, Search } from 'lucide-react-native';
+import { Camera, Check, Sparkles, CreditCard, Wifi } from 'lucide-react-native';
 
-interface ClearbitCompany {
-  name: string;
-  domain: string;
-  logo: string;
-}
+import { useCardStore } from '@/store/useCardStore';
+import { COLOR_PALETTE, DEFAULT_CARD_COLOR } from '@/constants/colors';
+import BarcodeScanner from '@/components/BarcodeScanner';
 
 export default function AddCardScreen() {
-  const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<ClearbitCompany[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Form fields
   const [brandName, setBrandName] = useState('');
   const [website, setWebsite] = useState('');
   const [barcodeValue, setBarcodeValue] = useState('');
-  const [brandColor, setBrandColor] = useState('#2563eb'); 
+  const [brandColor, setBrandColor] = useState(DEFAULT_CARD_COLOR);
+  const [code, setCode] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
 
   const addCard = useCardStore((state) => state.addCard);
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 860;
 
-  // Debounce effect for Clearbit API
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    
-    let isCancelled = false;
-    
-    const fetchCompanies = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(query)}`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        if (!isCancelled) setSuggestions(data);
-      } catch (error) {
-        console.error("Autocomplete Error:", error);
-      } finally {
-        if (!isCancelled) setIsLoading(false);
-      }
-    };
-
-    const delayDebounce = setTimeout(() => fetchCompanies(), 400);
-    return () => {
-      clearTimeout(delayDebounce);
-      isCancelled = true;
-    };
-  }, [query]);
-
-  const handleSelectCompany = (company: ClearbitCompany) => {
-    setBrandName(company.name);
-    setWebsite(company.domain);
-    // Setting a temporary primary color. In a real scenario, color extraction from logo can be performed here.
-    setQuery('');
-    setSuggestions([]);
-  };
+  const isFormValid = brandName.trim().length > 0 && barcodeValue.trim().length > 0;
 
   const handleSave = () => {
-    if (!brandName || !barcodeValue) return;
-    
+    if (!isFormValid) return;
+
     addCard({
-      brandName,
-      website,
-      barcodeType: 'CODE128', // default fallback for now
-      barcodeValue,
+      brandName: brandName.trim(),
+      website: website.trim(),
+      barcodeType: 'CODE128',
+      barcodeValue: barcodeValue.trim(),
       brandPrimaryColorHex: brandColor,
-      code: '',
-      notes: ''
+      code: code.trim(),
+      notes: notes.trim(),
     });
     router.push('/');
   };
+
+  const handleScan = (_type: string, data: string) => {
+    setBarcodeValue(data);
+    setIsScanning(false);
+  };
+
+  const renderCardPreview = () => (
+    <View className="w-full">
+      <View className="flex-row items-center gap-2 mb-3">
+        <Sparkles size={18} color="#2563eb" />
+        <Text className="text-sm font-bold text-neutral-700 uppercase tracking-wider">
+          Aperçu en Direct
+        </Text>
+      </View>
+
+      <View
+        style={{
+          backgroundColor: brandColor,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.2,
+          shadowRadius: 20,
+          elevation: 8,
+        }}
+        className="w-full aspect-[1.586] rounded-2xl p-5 sm:p-6 justify-between relative overflow-hidden border border-white/15"
+      >
+        {/* Halos décoratifs */}
+        <View 
+          pointerEvents="none"
+          className="absolute -top-16 -right-16 w-44 h-44 bg-white/15 rounded-full blur-2xl" 
+        />
+        <View 
+          pointerEvents="none"
+          className="absolute -bottom-10 -left-10 w-36 h-36 bg-black/20 rounded-full blur-xl" 
+        />
+
+        {/* En-tête de la carte */}
+        <View className="flex-row justify-between items-start">
+          <View className="flex-1 pr-3">
+            <Text 
+              className="text-white font-extrabold text-xl sm:text-2xl tracking-wide drop-shadow" 
+              numberOfLines={1}
+            >
+              {brandName || 'Nom de la marque'}
+            </Text>
+            <Text 
+              className="text-white/70 text-xs sm:text-sm font-medium uppercase tracking-wider mt-0.5" 
+              numberOfLines={1}
+            >
+              {website ? website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0] : 'www.enseigne.fr'}
+            </Text>
+          </View>
+
+          {/* Vagues sans contact et puce simulée */}
+          <View className="flex-row items-center space-x-1.5 opacity-85">
+            <View className="w-8 h-6 rounded bg-amber-300/90 border border-amber-400/60 mr-2" />
+            <Wifi size={20} color="white" className="rotate-90 opacity-90" />
+          </View>
+        </View>
+
+        {/* Mockup du Code-barre */}
+        <View className="bg-white/95 backdrop-blur rounded-xl p-3 items-center w-full shadow-inner border border-white/40">
+          <View className="w-full flex-row justify-center items-center h-6 mb-1.5 px-2 overflow-hidden opacity-90">
+            {Array.from({ length: 42 }).map((_, i) => (
+              <View 
+                key={i} 
+                className="bg-neutral-900 mx-[1.5px]" 
+                style={{
+                  width: (i % 4 === 0 ? 3 : i % 3 === 0 ? 2 : 1),
+                  height: (i % 6 === 0 ? 22 : 24),
+                }}
+              />
+            ))}
+          </View>
+          <Text 
+            className="text-neutral-900 font-mono text-xs sm:text-sm font-bold tracking-widest"
+            numberOfLines={1}
+          >
+            {barcodeValue || '1234 5678 9012'}
+          </Text>
+        </View>
+      </View>
+
+      <Text className="text-neutral-400 text-xs text-center mt-3 font-medium">
+        L'apparence de la carte est mise à jour automatiquement pendant votre saisie.
+      </Text>
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView className="flex-1 bg-neutral-50 px-6 pt-6" keyboardShouldPersistTaps="handled">
-        <Text className="text-3xl font-extrabold text-neutral-900 mb-6">Nouvelle Carte</Text>
-
-        {/* Global Search Bar */}
-        <View className="relative z-50 mb-6">
-          <View className="flex-row items-center bg-white rounded-xl px-4 py-3 shadow-sm border border-neutral-200">
-            <Search size={22} className="text-neutral-400 mr-2" />
-            <TextInput
-              placeholder="Rechercher une enseigne (ex: Sephora)"
-              value={query}
-              onChangeText={setQuery}
-              className="flex-1 text-base text-neutral-900"
-              autoCorrect={false}
-            />
-            {isLoading && <ActivityIndicator size="small" color="#9CA3AF" />}
+      <ScrollView 
+        className="flex-1 bg-neutral-50" 
+        contentContainerStyle={{ 
+          paddingBottom: Platform.OS === 'web' ? 120 : 100 
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+          {/* Titre */}
+          <View className="mb-6">
+            <Text className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
+              Nouvelle Carte
+            </Text>
+            <Text className="text-neutral-500 text-sm sm:text-base mt-1">
+              Renseignez les détails de votre carte de fidélité ou d'adhérent.
+            </Text>
           </View>
 
-          {/* Autocomplete Dropdown */}
-          {suggestions.length > 0 && (
-            <View className="absolute top-14 left-0 right-0 bg-white rounded-xl shadow-lg border border-neutral-100 max-h-60 overflow-hidden z-50">
-              <FlatList
-                data={suggestions}
-                keyExtractor={(item) => item.domain}
-                keyboardShouldPersistTaps="handled"
-                renderItem={({ item }) => (
-                  <TouchableOpacity 
-                    className="flex-row items-center p-4 border-b border-neutral-50"
-                    onPress={() => handleSelectCompany(item)}
-                  >
-                    <Image source={{ uri: item.logo }} className="w-8 h-8 rounded-full bg-neutral-100 mr-3" />
-                    <Text className="text-base text-neutral-800 font-medium">{item.name}</Text>
-                  </TouchableOpacity>
-                )}
+          {/* Grille principale : Formulaire + Aperçu */}
+          <View className={isLargeScreen ? 'flex-row items-start gap-8' : 'flex-col gap-6'}>
+            
+            {/* Colonne Formulaire */}
+            <View className={isLargeScreen ? 'flex-1' : 'w-full'}>
+              <View className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80">
+                
+                {/* Informations de la marque */}
+                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                  Informations de l'enseigne
+                </Text>
+                
+                <View className="mb-4">
+                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
+                    Nom de l'enseigne <Text className="text-red-500">*</Text>
+                  </Text>
+                  <TextInput
+                    placeholder="Ex: Fnac, Sephora, Carrefour, Decathlon..."
+                    placeholderTextColor="#9ca3af"
+                    value={brandName}
+                    onChangeText={setBrandName}
+                    className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base font-medium focus:border-blue-500"
+                  />
+                </View>
+
+                <View className="mb-6">
+                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
+                    Site web officiel (Optionnel)
+                  </Text>
+                  <TextInput
+                    placeholder="Ex: www.fnac.com"
+                    placeholderTextColor="#9ca3af"
+                    value={website}
+                    onChangeText={setWebsite}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base focus:border-blue-500"
+                  />
+                </View>
+
+                {/* Sélection de la couleur */}
+                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                  Couleur de la carte
+                </Text>
+                <View className="flex-row flex-wrap gap-2.5 mb-6">
+                  {COLOR_PALETTE.map((c) => {
+                    const isSelected = brandColor.toLowerCase() === c.hex.toLowerCase();
+                    return (
+                      <TouchableOpacity
+                        key={c.hex}
+                        onPress={() => setBrandColor(c.hex)}
+                        style={[
+                          { backgroundColor: c.hex },
+                          Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined
+                        ]}
+                        className={`w-10 h-10 rounded-full justify-center items-center shadow-sm border-2 transition-transform ${
+                          isSelected ? 'border-neutral-900 scale-110' : 'border-white/50'
+                        }`}
+                      >
+                        {isSelected && <Check size={18} color="#ffffff" strokeWidth={3} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Section Code-barres */}
+                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                  Code-barre
+                </Text>
+                
+                <View className="mb-6">
+                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
+                    Numéro de code-barre <Text className="text-red-500">*</Text>
+                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    <TextInput
+                      placeholder="Ex: 978020137962"
+                      placeholderTextColor="#9ca3af"
+                      value={barcodeValue}
+                      onChangeText={setBarcodeValue}
+                      keyboardType="number-pad"
+                      className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base font-mono tracking-wider focus:border-blue-500"
+                    />
+                    <TouchableOpacity 
+                      onPress={() => setIsScanning(true)}
+                      className="bg-neutral-100 active:bg-neutral-200 rounded-xl p-3.5 justify-center items-center border border-neutral-200 shadow-sm"
+                      style={Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined}
+                    >
+                      <Camera size={22} color="#4b5563" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Métadonnées facultatives */}
+                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+                  Détails supplémentaires
+                </Text>
+
+                <View className="mb-4">
+                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
+                    Code annexe / Numéro client (Optionnel)
+                  </Text>
+                  <TextInput
+                    placeholder="Ex: CUST-88912"
+                    placeholderTextColor="#9ca3af"
+                    value={code}
+                    onChangeText={setCode}
+                    className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base focus:border-blue-500"
+                  />
+                </View>
+
+                <View className="mb-8">
+                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
+                    Notes ou conditions (Optionnel)
+                  </Text>
+                  <TextInput
+                    placeholder="Ex: Valable en magasin et sur le web, -15% sur les livres..."
+                    placeholderTextColor="#9ca3af"
+                    value={notes}
+                    onChangeText={setNotes}
+                    multiline
+                    numberOfLines={3}
+                    className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base focus:border-blue-500"
+                    style={{ minHeight: 80, textAlignVertical: 'top' }}
+                  />
+                </View>
+
+                {/* Bouton d'enregistrement */}
+                <TouchableOpacity 
+                  className={`rounded-2xl py-4 flex-row justify-center items-center shadow-md transition-opacity ${
+                    !isFormValid 
+                      ? 'bg-neutral-300 opacity-60' 
+                      : 'bg-blue-600 active:bg-blue-700'
+                  }`}
+                  onPress={handleSave}
+                  disabled={!isFormValid}
+                  style={
+                    Platform.OS === 'web'
+                      ? ({ cursor: !isFormValid ? 'not-allowed' : 'pointer' } as any)
+                      : undefined
+                  }
+                >
+                  <CreditCard size={20} color="#ffffff" className="mr-2" />
+                  <Text className="text-white font-bold text-lg">
+                    Enregistrer la carte
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Colonne Aperçu en Direct */}
+            <View className={isLargeScreen ? 'w-[380px] lg:w-[420px]' : 'w-full'}>
+              <View className="bg-white p-6 rounded-3xl shadow-sm border border-neutral-200/80">
+                {renderCardPreview()}
+              </View>
+            </View>
+
+          </View>
+        </View>
+
+        {/* Modal du Scanner */}
+        <Modal 
+          visible={isScanning} 
+          animationType="slide" 
+          transparent={true}
+          onRequestClose={() => setIsScanning(false)}
+        >
+          <View className="flex-1 bg-black/75 justify-center items-center p-4">
+            <View className="w-full max-w-lg h-[500px] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+              <BarcodeScanner 
+                onScan={handleScan}
+                onClose={() => setIsScanning(false)}
               />
             </View>
-          )}
-        </View>
-
-        {/* Form */}
-        <View className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 z-10">
-          <Text className="text-sm font-semibold text-neutral-500 mb-2 uppercase">Informations</Text>
-          
-          <TextInput
-            placeholder="Nom de l'enseigne"
-            value={brandName}
-            onChangeText={setBrandName}
-            className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 mb-4 text-neutral-900 text-base font-medium"
-          />
-
-          <TextInput
-            placeholder="Site Web (Optionnel)"
-            value={website}
-            onChangeText={setWebsite}
-            autoCapitalize="none"
-            keyboardType="url"
-            className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 mb-6 text-neutral-900 text-base"
-          />
-
-          <Text className="text-sm font-semibold text-neutral-500 mb-2 uppercase">Code-Barre</Text>
-          <View className="flex-row mb-6">
-            <TextInput
-              placeholder="Ex: 123456789012"
-              value={barcodeValue}
-              onChangeText={setBarcodeValue}
-              keyboardType="number-pad"
-              className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base font-mono tracking-widest"
-            />
-            {/* The scanner feature button would go here */}
-            <TouchableOpacity className="ml-3 bg-neutral-100 rounded-xl p-3 justify-center items-center border border-neutral-200">
-              <Camera size={24} color="#6b7280" />
-            </TouchableOpacity>
           </View>
+        </Modal>
 
-          <TouchableOpacity 
-            className={`rounded-xl py-4 flex-row justify-center items-center ${
-              !brandName || !barcodeValue ? 'bg-blue-300' : 'bg-blue-600'
-            }`}
-            onPress={handleSave}
-            disabled={!brandName || !barcodeValue}
-          >
-            <Text className="text-white font-bold text-lg">Enregistrer</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="h-20" />
       </ScrollView>
     </KeyboardAvoidingView>
   );

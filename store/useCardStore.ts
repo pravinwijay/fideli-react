@@ -3,22 +3,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { LoyaltyCard, NewLoyaltyCard } from '@/types/card';
 
-export type LoyaltyCard = {
-  id: string;
-  brandName: string;
-  website: string;
-  barcodeType: string;
-  barcodeValue: string;
-  brandPrimaryColorHex: string;
-  dateAdded: string; // ISO string
-  code: string;
-  notes: string;
-};
+export type { LoyaltyCard, NewLoyaltyCard };
 
 interface CardStore {
   cards: LoyaltyCard[];
-  addCard: (card: Omit<LoyaltyCard, 'id' | 'dateAdded'>) => void;
+  addCard: (card: NewLoyaltyCard) => void;
   updateCard: (id: string, card: Partial<LoyaltyCard>) => void;
   removeCard: (id: string) => void;
 }
