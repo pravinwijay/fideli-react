@@ -19,7 +19,6 @@ import BarcodeScanner from '@/components/BarcodeScanner';
 
 export default function AddCardScreen() {
   const [brandName, setBrandName] = useState('');
-  const [website, setWebsite] = useState('');
   const [barcodeValue, setBarcodeValue] = useState('');
   const [brandColor, setBrandColor] = useState(DEFAULT_CARD_COLOR);
   const [code, setCode] = useState('');
@@ -38,7 +37,7 @@ export default function AddCardScreen() {
 
     addCard({
       brandName: brandName.trim(),
-      website: website.trim(),
+      website: '',
       barcodeType: 'CODE128',
       barcodeValue: barcodeValue.trim(),
       brandPrimaryColorHex: brandColor,
@@ -91,12 +90,6 @@ export default function AddCardScreen() {
               numberOfLines={1}
             >
               {brandName || 'Nom de la marque'}
-            </Text>
-            <Text 
-              className="text-white/70 text-xs sm:text-sm font-medium uppercase tracking-wider mt-0.5" 
-              numberOfLines={1}
-            >
-              {website ? website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0] : 'www.enseigne.fr'}
             </Text>
           </View>
 
@@ -166,12 +159,8 @@ export default function AddCardScreen() {
             <View className={isLargeScreen ? 'flex-1' : 'w-full'}>
               <View className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-neutral-200/80">
                 
-                {/* Informations de la marque */}
-                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
-                  Informations de l'enseigne
-                </Text>
-                
-                <View className="mb-4">
+                {/* Nom de l'enseigne */}
+                <View className="mb-5">
                   <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
                     Nom de l'enseigne <Text className="text-red-500">*</Text>
                   </Text>
@@ -184,52 +173,35 @@ export default function AddCardScreen() {
                   />
                 </View>
 
-                <View className="mb-6">
-                  <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
-                    Site web officiel (Optionnel)
-                  </Text>
-                  <TextInput
-                    placeholder="Ex: www.fnac.com"
-                    placeholderTextColor="#9ca3af"
-                    value={website}
-                    onChangeText={setWebsite}
-                    autoCapitalize="none"
-                    keyboardType="url"
-                    className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 text-base focus:border-blue-500"
-                  />
-                </View>
-
                 {/* Sélection de la couleur */}
-                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
-                  Couleur de la carte
-                </Text>
-                <View className="flex-row flex-wrap gap-2.5 mb-6">
-                  {COLOR_PALETTE.map((c) => {
-                    const isSelected = brandColor.toLowerCase() === c.hex.toLowerCase();
-                    return (
-                      <TouchableOpacity
-                        key={c.hex}
-                        onPress={() => setBrandColor(c.hex)}
-                        style={[
-                          { backgroundColor: c.hex },
-                          Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined
-                        ]}
-                        className={`w-10 h-10 rounded-full justify-center items-center shadow-sm border-2 transition-transform ${
-                          isSelected ? 'border-neutral-900 scale-110' : 'border-white/50'
-                        }`}
-                      >
-                        {isSelected && <Check size={18} color="#ffffff" strokeWidth={3} />}
-                      </TouchableOpacity>
-                    );
-                  })}
+                <View className="mb-5">
+                  <Text className="text-sm font-semibold text-neutral-700 mb-2">
+                    Couleur de la carte
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2.5">
+                    {COLOR_PALETTE.map((c) => {
+                      const isSelected = brandColor.toLowerCase() === c.hex.toLowerCase();
+                      return (
+                        <TouchableOpacity
+                          key={c.hex}
+                          onPress={() => setBrandColor(c.hex)}
+                          style={[
+                            { backgroundColor: c.hex },
+                            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined
+                          ]}
+                          className={`w-10 h-10 rounded-full justify-center items-center shadow-sm border-2 transition-transform ${
+                            isSelected ? 'border-neutral-900 scale-110' : 'border-white/50'
+                          }`}
+                        >
+                          {isSelected && <Check size={18} color="#ffffff" strokeWidth={3} />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
 
                 {/* Section Code-barres */}
-                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
-                  Code-barre
-                </Text>
-                
-                <View className="mb-6">
+                <View className="mb-5">
                   <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
                     Numéro de code-barre <Text className="text-red-500">*</Text>
                   </Text>
@@ -252,14 +224,10 @@ export default function AddCardScreen() {
                   </View>
                 </View>
 
-                {/* Métadonnées facultatives */}
-                <Text className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
-                  Détails supplémentaires
-                </Text>
-
-                <View className="mb-4">
+                {/* Numéro client */}
+                <View className="mb-5">
                   <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
-                    Code annexe / Numéro client (Optionnel)
+                    Numéro client
                   </Text>
                   <TextInput
                     placeholder="Ex: CUST-88912"
@@ -270,12 +238,13 @@ export default function AddCardScreen() {
                   />
                 </View>
 
+                {/* Notes */}
                 <View className="mb-8">
                   <Text className="text-sm font-semibold text-neutral-700 mb-1.5">
-                    Notes ou conditions (Optionnel)
+                    Notes
                   </Text>
                   <TextInput
-                    placeholder="Ex: Valable en magasin et sur le web, -15% sur les livres..."
+                    placeholder="Ex: -15% sur les livres, valable en magasin..."
                     placeholderTextColor="#9ca3af"
                     value={notes}
                     onChangeText={setNotes}
@@ -327,7 +296,7 @@ export default function AddCardScreen() {
           onRequestClose={() => setIsScanning(false)}
         >
           <View className="flex-1 bg-black/75 justify-center items-center p-4">
-            <View className="w-full max-w-lg h-[500px] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
+            <View className="w-full max-w-lg h-[80vh] max-h-[520px] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
               <BarcodeScanner 
                 onScan={handleScan}
                 onClose={() => setIsScanning(false)}
